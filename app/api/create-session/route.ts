@@ -36,10 +36,22 @@ export async function POST(request: Request): Promise<Response> {
       );
     }
 
+    // Extract URL parameters
+    const requestUrl = new URL(request.url);
+    const userFirstName = requestUrl.searchParams.get('user_first_name');
+    const userLastName = requestUrl.searchParams.get('user_last_name');
+    const formTemplateUid = requestUrl.searchParams.get('form_template_uid');
+    const urlUserId = requestUrl.searchParams.get('user_id');
+
     const parsedBody = await safeParseJson<CreateSessionRequestBody>(request);
     const { userId, sessionCookie: resolvedSessionCookie } =
       await resolveUserId(request);
     sessionCookie = resolvedSessionCookie;
+    
+    // Construct user parameter from form_template_uid and user_id with _x_ separator
+    const constructedUserId = formTemplateUid && urlUserId 
+      ? `${formTemplateUid}_x_${urlUserId}` 
+      : userId;
     const resolvedWorkflowId =
       parsedBody?.workflow?.id ?? parsedBody?.workflowId ?? WORKFLOW_ID;
 
@@ -69,8 +81,17 @@ export async function POST(request: Request): Promise<Response> {
         "OpenAI-Beta": "chatkit_beta=v1",
       },
       body: JSON.stringify({
-        workflow: { id: resolvedWorkflowId },
-        user: userId,
+        workflow: { 
+          id: resolvedWorkflowId,
+          version: "draft",
+          state_variables: {
+            question_template_uid: "",
+            form_template_uid: formTemplateUid || "",
+            user_first_name: userFirstName || "",
+            user_last_name: userLastName || ""
+          }
+        },
+        user: constructedUserId,
         chatkit_configuration: {
           file_upload: {
             enabled:
