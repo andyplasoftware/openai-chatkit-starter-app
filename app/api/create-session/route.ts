@@ -6,6 +6,7 @@ interface CreateSessionRequestBody {
   workflow?: { id?: string | null } | null;
   scope?: { user_id?: string | null } | null;
   workflowId?: string | null;
+  question_template_id?: string | null;
   chatkit_configuration?: {
     file_upload?: {
       enabled?: boolean;
@@ -42,11 +43,15 @@ export async function POST(request: Request): Promise<Response> {
     const userLastName = requestUrl.searchParams.get('user_last_name');
     const formTemplateUid = requestUrl.searchParams.get('form_template_uid');
     const urlUserId = requestUrl.searchParams.get('user_id');
+    const urlQuestionTemplateId = requestUrl.searchParams.get('question_template_id');
 
     const parsedBody = await safeParseJson<CreateSessionRequestBody>(request);
     const { userId, sessionCookie: resolvedSessionCookie } =
       await resolveUserId(request);
     sessionCookie = resolvedSessionCookie;
+    
+    // Get question_template_id from request body (prioritized) or URL parameter
+    const questionTemplateId = parsedBody?.question_template_id || urlQuestionTemplateId;
     
     // Construct user parameter from form_template_uid and user_id with _x_ separator
     const constructedUserId = formTemplateUid && urlUserId 
@@ -84,7 +89,7 @@ export async function POST(request: Request): Promise<Response> {
         workflow: { 
           id: resolvedWorkflowId,
           state_variables: {
-            question_template_uid: "",
+            question_template_id: questionTemplateId || "",
             form_template_uid: formTemplateUid || "",
             user_first_name: userFirstName || "",
             user_last_name: userLastName || ""

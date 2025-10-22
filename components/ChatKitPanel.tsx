@@ -61,6 +61,7 @@ export function ChatKitPanel({
       : "pending"
   );
   const [widgetInstanceKey, setWidgetInstanceKey] = useState(0);
+  const [questionTemplateId, setQuestionTemplateId] = useState<string | null>(null);
   
   // Get user first name from URL for personalized greeting
   const getUserFirstName = () => {
@@ -78,6 +79,29 @@ export function ChatKitPanel({
       isMountedRef.current = false;
     };
   }, []);
+
+  // Listen for postMessage events from parent page
+  useEffect(() => {
+    if (!isBrowser) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Verify origin for security (you should replace with your parent domain)
+      // if (event.origin !== 'https://yourparentdomain.com') return;
+      
+      if (event.data?.type === 'question_template_id_update') {
+        const newQuestionTemplateId = event.data.question_template_id;
+        if (newQuestionTemplateId !== questionTemplateId) {
+          console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
+          setQuestionTemplateId(newQuestionTemplateId);
+          // Trigger session recreation by resetting the widget
+          handleResetChat();
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [questionTemplateId]);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -199,6 +223,7 @@ export function ChatKitPanel({
         url.searchParams.set('user_last_name', urlParams.get('user_last_name') || '');
         url.searchParams.set('form_template_uid', urlParams.get('form_template_uid') || '');
         url.searchParams.set('user_id', urlParams.get('user_id') || '');
+        url.searchParams.set('question_template_id', urlParams.get('question_template_id') || '');
         
         const response = await fetch(url.toString(), {
           method: "POST",
@@ -207,6 +232,7 @@ export function ChatKitPanel({
           },
           body: JSON.stringify({
             workflow: { id: WORKFLOW_ID },
+            question_template_id: questionTemplateId || urlParams.get('question_template_id'),
             chatkit_configuration: {
               // enable attachments
               file_upload: {
@@ -273,7 +299,7 @@ export function ChatKitPanel({
         }
       }
     },
-    [isWorkflowConfigured, setErrorState]
+    [isWorkflowConfigured, setErrorState, questionTemplateId]
   );
 
   const chatkit = useChatKit({
