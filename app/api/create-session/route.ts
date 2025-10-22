@@ -83,7 +83,6 @@ export async function POST(request: Request): Promise<Response> {
       body: JSON.stringify({
         workflow: { 
           id: resolvedWorkflowId,
-          version: "draft",
           state_variables: {
             question_template_uid: "",
             form_template_uid: formTemplateUid || "",
