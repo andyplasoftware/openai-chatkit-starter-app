@@ -80,27 +80,6 @@ export function ChatKitPanel({
     };
   }, []);
 
-  // Listen for postMessage events from parent page
-  useEffect(() => {
-    if (!isBrowser) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      // Verify origin for security (you should replace with your parent domain)
-      // if (event.origin !== 'https://yourparentdomain.com') return;
-      
-      if (event.data?.type === 'question_template_id_update') {
-        const newQuestionTemplateId = event.data.question_template_id;
-        console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
-        setQuestionTemplateId(newQuestionTemplateId);
-        // Trigger session recreation by resetting the widget
-        handleResetChat();
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
   useEffect(() => {
     if (!isBrowser) {
       return;
@@ -185,6 +164,27 @@ export function ChatKitPanel({
     setErrors(createInitialErrors());
     setWidgetInstanceKey((prev) => prev + 1);
   }, []);
+
+  // Listen for postMessage events from parent page
+  useEffect(() => {
+    if (!isBrowser) return;
+
+    const handleMessage = (event: MessageEvent) => {
+      // Verify origin for security (you should replace with your parent domain)
+      // if (event.origin !== 'https://yourparentdomain.com') return;
+      
+      if (event.data?.type === 'question_template_id_update') {
+        const newQuestionTemplateId = event.data.question_template_id;
+        console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
+        setQuestionTemplateId(newQuestionTemplateId);
+        // Trigger session recreation by resetting the widget
+        handleResetChat();
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [handleResetChat]);
 
   const getClientSecret = useCallback(
     async (currentSecret: string | null) => {
