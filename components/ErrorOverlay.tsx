@@ -43,7 +43,7 @@ export function ErrorOverlay({
           <button
             type="button"
             className="mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            style={{ backgroundColor: '#740066', hover: { backgroundColor: '#5a004d' } }}
+            style={{ backgroundColor: '#740066' }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5a004d')}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#740066')}
             onClick={onRetry}
