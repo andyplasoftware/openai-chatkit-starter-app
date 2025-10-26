@@ -20,19 +20,32 @@ export function ErrorOverlay({
   }
 
   const content = error ?? fallbackMessage;
+  const isLoading = !error && fallbackMessage;
 
   if (!content) {
     return null;
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex h-full w-full flex-col justify-center rounded-[inherit] bg-white/85 p-6 text-center backdrop-blur dark:bg-slate-900/90">
-      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-xl bg-white px-6 py-4 text-lg font-medium text-slate-700 dark:bg-transparent dark:text-slate-100">
-        <div>{content}</div>
+    <div className="pointer-events-none absolute inset-0 z-10 flex h-full w-full flex-col justify-center rounded-[inherit] bg-white/85 p-6 text-center backdrop-blur">
+      <div className="pointer-events-auto mx-auto w-full max-w-md rounded-xl bg-white px-6 py-4 text-lg font-medium text-slate-700">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center gap-6">
+            <div className="relative">
+              <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#740066]/20 border-t-[#740066]"></div>
+            </div>
+            <div className="text-base text-slate-600">{content}</div>
+          </div>
+        ) : (
+          <div>{content}</div>
+        )}
         {error && onRetry ? (
           <button
             type="button"
-            className="mt-4 inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-none transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+            className="mt-4 inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-none transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+            style={{ backgroundColor: '#740066', hover: { backgroundColor: '#5a004d' } }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#5a004d')}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#740066')}
             onClick={onRetry}
           >
             {retryLabel ?? "Restart chat"}
