@@ -90,18 +90,16 @@ export function ChatKitPanel({
       
       if (event.data?.type === 'question_template_id_update') {
         const newQuestionTemplateId = event.data.question_template_id;
-        if (newQuestionTemplateId !== questionTemplateId) {
-          console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
-          setQuestionTemplateId(newQuestionTemplateId);
-          // Trigger session recreation by resetting the widget
-          handleResetChat();
-        }
+        console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
+        setQuestionTemplateId(newQuestionTemplateId);
+        // Trigger session recreation by resetting the widget
+        handleResetChat();
       }
     };
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [questionTemplateId]);
+  }, []);
 
   useEffect(() => {
     if (!isBrowser) {
@@ -224,6 +222,7 @@ export function ChatKitPanel({
         url.searchParams.set('form_template_uid', urlParams.get('form_template_uid') || '');
         url.searchParams.set('user_id', urlParams.get('user_id') || '');
         url.searchParams.set('question_template_id', urlParams.get('question_template_id') || '');
+        url.searchParams.set('version', urlParams.get('version') || '');
         
         const response = await fetch(url.toString(), {
           method: "POST",

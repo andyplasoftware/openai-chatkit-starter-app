@@ -44,6 +44,7 @@ export async function POST(request: Request): Promise<Response> {
     const formTemplateUid = requestUrl.searchParams.get('form_template_uid');
     const urlUserId = requestUrl.searchParams.get('user_id');
     const urlQuestionTemplateId = requestUrl.searchParams.get('question_template_id');
+    const version = requestUrl.searchParams.get('version');
 
     const parsedBody = await safeParseJson<CreateSessionRequestBody>(request);
     const { userId, sessionCookie: resolvedSessionCookie } =
@@ -88,6 +89,7 @@ export async function POST(request: Request): Promise<Response> {
       body: JSON.stringify({
         workflow: { 
           id: resolvedWorkflowId,
+          version: version || "",
           state_variables: {
             question_template_id: questionTemplateId || "",
             form_template_uid: formTemplateUid || "",
