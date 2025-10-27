@@ -235,7 +235,7 @@ export function ChatKitPanel({
             chatkit_configuration: {
               // enable attachments
               file_upload: {
-                enabled: true,
+                enabled: false,
               },
             },
           }),
@@ -315,7 +315,7 @@ export function ChatKitPanel({
       placeholder: PLACEHOLDER_INPUT,
       attachments: {
         // Enable attachments
-        enabled: true,
+        enabled: false,
       },
     },
     threadItemActions: {
