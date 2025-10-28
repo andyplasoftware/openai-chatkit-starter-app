@@ -70,6 +70,13 @@ export function ChatKitPanel({
     return urlParams.get('user_first_name') || "";
   };
 
+    // Get question name from URL for personalized greeting
+    const getQuestionName = () => {
+      if (typeof window === "undefined") return "";
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('question_name') || "";
+    };
+
   const setErrorState = useCallback((updates: Partial<ErrorState>) => {
     setErrors((current) => ({ ...current, ...updates }));
   }, []);
@@ -308,7 +315,7 @@ export function ChatKitPanel({
       ...getThemeConfig(theme),
     },
     startScreen: {
-      greeting: getUserFirstName() ? `Hi ${getUserFirstName()}, how can I help you today?` : GREETING,
+      greeting: getQuestionName() ? getQuestionName() : getUserFirstName() ? `Hi ${getUserFirstName()}, how can I help you today?` : GREETING,
       prompts: STARTER_PROMPTS,
     },
     composer: {

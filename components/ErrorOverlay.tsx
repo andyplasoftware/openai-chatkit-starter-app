@@ -32,9 +32,12 @@ export function ErrorOverlay({
         {isLoading ? (
           <div className="flex flex-col items-center justify-center gap-6">
             <div className="relative">
-              <div className="h-12 w-12 animate-spin rounded-full border-4 border-[#740066]/20 border-t-[#740066]"></div>
+            <div 
+              className="h-10 w-10 animate-spin rounded-full border-3 border-[#740066]/20 border-t-[#740066]"
+              style={{ animationDuration: "400ms" }}
+            ></div>
             </div>
-            <div className="text-base text-slate-600">{content}</div>
+            <div className="text-base text-gray-900">{content}</div>
           </div>
         ) : (
           <div>{content}</div>
