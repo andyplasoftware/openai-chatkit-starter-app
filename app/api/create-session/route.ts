@@ -55,9 +55,9 @@ export async function POST(request: Request): Promise<Response> {
     const questionTemplateId = parsedBody?.question_template_id || urlQuestionTemplateId;
     
     // Construct user parameter from form_template_uid and user_id with _x_ separator
-    const constructedUserId = formTemplateUid && urlUserId 
-      ? `${formTemplateUid}_x_${urlUserId}` 
-      : userId;
+    const constructedUserId = urlUserId && questionTemplateId
+    ? `${urlUserId}_x_${questionTemplateId}`
+    : urlUserId || userId;
     const resolvedWorkflowId =
       parsedBody?.workflow?.id ?? parsedBody?.workflowId ?? WORKFLOW_ID;
 
