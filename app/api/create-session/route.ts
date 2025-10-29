@@ -65,6 +65,8 @@ export async function POST(request: Request): Promise<Response> {
       console.info("[create-session] handling request", {
         resolvedWorkflowId,
         body: JSON.stringify(parsedBody),
+        urlQuestionTemplateId,
+        questionTemplateId,
       });
     }
 
@@ -91,7 +93,7 @@ export async function POST(request: Request): Promise<Response> {
           id: resolvedWorkflowId,
           version: version || "",
           state_variables: {
-            question_template_id: questionTemplateId || "",
+            question_template_uid: questionTemplateId || "",
             form_template_uid: formTemplateUid || "",
             user_first_name: userFirstName || "",
             user_last_name: userLastName || ""
