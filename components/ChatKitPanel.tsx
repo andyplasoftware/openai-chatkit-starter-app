@@ -216,7 +216,7 @@ export function ChatKitPanel({
           },
           body: JSON.stringify({
             workflow: { id: WORKFLOW_ID },
-            question_template_id: urlParams.get('question_template_id'),
+            question_template_id: urlParams.get('question_template_id') || '',
             chatkit_configuration: {
               // enable attachments
               file_upload: {
