@@ -61,7 +61,6 @@ export function ChatKitPanel({
       : "pending"
   );
   const [widgetInstanceKey, setWidgetInstanceKey] = useState(0);
-  const [questionTemplateId, setQuestionTemplateId] = useState<string | null>(null);
   
   // Get user first name from URL for personalized greeting
   const getUserFirstName = () => {
@@ -172,27 +171,6 @@ export function ChatKitPanel({
     setWidgetInstanceKey((prev) => prev + 1);
   }, []);
 
-  // Listen for postMessage events from parent page
-  useEffect(() => {
-    if (!isBrowser) return;
-
-    const handleMessage = (event: MessageEvent) => {
-      // Verify origin for security (you should replace with your parent domain)
-      // if (event.origin !== 'https://yourparentdomain.com') return;
-      
-      if (event.data?.type === 'question_template_id_update') {
-        const newQuestionTemplateId = event.data.question_template_id;
-        console.log('[ChatKitPanel] Received question_template_id update:', newQuestionTemplateId);
-        setQuestionTemplateId(newQuestionTemplateId);
-        // Trigger session recreation by resetting the widget
-        handleResetChat();
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [handleResetChat]);
-
   const getClientSecret = useCallback(
     async (currentSecret: string | null) => {
       if (isDev) {
@@ -238,7 +216,7 @@ export function ChatKitPanel({
           },
           body: JSON.stringify({
             workflow: { id: WORKFLOW_ID },
-            question_template_id: questionTemplateId || urlParams.get('question_template_id'),
+            question_template_id: urlParams.get('question_template_id'),
             chatkit_configuration: {
               // enable attachments
               file_upload: {
@@ -305,7 +283,7 @@ export function ChatKitPanel({
         }
       }
     },
-    [isWorkflowConfigured, setErrorState, questionTemplateId]
+    [isWorkflowConfigured, setErrorState]
   );
 
   const chatkit = useChatKit({
