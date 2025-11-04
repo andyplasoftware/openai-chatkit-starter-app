@@ -4,6 +4,8 @@
   --background: #ffffff;
   --foreground: #171717;
   color-scheme: light;
+  --font-heading-lg-size: 19px;
+  --font-heading-size: 19px;
 }
 
 :root[data-color-scheme="dark"] {
@@ -40,9 +42,23 @@ body {
 }
 
 /* ChatKit CSS variables - override font size */
+:root {
+  --font-heading-lg-size: 19px;
+  --font-heading-size: 19px;
+}
+
 openai-chatkit {
-  --font-heading-lg-size: 19px !important;
-  --font-heading-size: 19px !important;
+  --font-heading-lg-size: 19px;
+  --font-heading-size: 19px;
+}
+
+/* Direct override for h2 with class */
+openai-chatkit h2.ebZWS,
+openai-chatkit h2 {
+  font-size: 19px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  color: #333333 !important;
 }
 
 /* ChatKit greeting text styling */
