@@ -39,6 +39,12 @@ body {
   font-family: var(--font-sans);
 }
 
+/* ChatKit CSS variables - override font size */
+openai-chatkit {
+  --font-heading-lg-size: 19px !important;
+  --font-heading-size: 19px !important;
+}
+
 /* ChatKit greeting text styling */
 openai-chatkit [data-greeting],
 openai-chatkit .greeting,
