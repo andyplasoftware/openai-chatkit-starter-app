@@ -4,8 +4,6 @@
   --background: #ffffff;
   --foreground: #171717;
   color-scheme: light;
-  --font-heading-lg-size: 19px;
-  --font-heading-size: 19px;
 }
 
 :root[data-color-scheme="dark"] {
@@ -22,12 +20,10 @@
   }
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-sans: Arial, Helvetica, sans-serif;
   --font-mono: SFMono-Regular, Consolas, "Liberation Mono", monospace;
 }
 
@@ -39,54 +35,4 @@ body {
   background: #ffffff !important;
   color: var(--foreground);
   font-family: var(--font-sans);
-}
-
-/* ChatKit CSS variables - override font size */
-:root {
-  --font-heading-lg-size: 19px;
-  --font-heading-size: 19px;
-}
-
-openai-chatkit {
-  --font-heading-lg-size: 19px;
-  --font-heading-size: 19px;
-}
-
-/* Direct override for h2 with class */
-openai-chatkit h2.ebZWS,
-openai-chatkit h2 {
-  font-size: 19px !important;
-  font-family: 'Inter', sans-serif !important;
-  font-weight: 600 !important;
-  color: #333333 !important;
-}
-
-/* ChatKit greeting text styling */
-openai-chatkit [data-greeting],
-openai-chatkit .greeting,
-openai-chatkit h1,
-openai-chatkit h2 {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 19px !important;
-  font-weight: 600 !important;
-  color: #333333 !important;
-}
-
-/* Target the start screen greeting specifically */
-openai-chatkit start-screen,
-openai-chatkit [role="start-screen"] {
-  font-family: 'Inter', sans-serif !important;
-}
-
-openai-chatkit [role="start-screen"] * {
-  font-family: 'Inter', sans-serif !important;
-}
-
-/* More specific selector for greeting text */
-openai-chatkit [slot="greeting"],
-openai-chatkit ::part(greeting) {
-  font-family: 'Inter', sans-serif !important;
-  font-size: 19px !important;
-  font-weight: 600 !important;
-  color: #333333 !important;
 }
