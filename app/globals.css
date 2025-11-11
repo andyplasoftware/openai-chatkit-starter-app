@@ -36,3 +36,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+/* Set pointer cursor on Generate Answer button and modal buttons */
+button.cursor-default-btn,
+button[data-cursor-default="true"] {
+  cursor: pointer !important;
+}
+
+button.cursor-default-btn:hover,
+button[data-cursor-default="true"]:hover {
+  cursor: pointer !important;
+}

@@ -18,18 +18,32 @@ export const PLACEHOLDER_INPUT = "Ask anything...";
 export const GREETING = "How can I help you today?";
 
 export const getThemeConfig = (theme: ColorScheme): ThemeOption => ({
+  radius: "soft", // Updated from "round" to "soft"
+  density: "normal", // New from playground
   color: {
+    accent: {
+      primary: "#740066", // Updated to your purple color
+      level: 1,
+    },
+    // Keep grayscale if you want, or remove it
     grayscale: {
       hue: 220,
       tint: 6,
       shade: theme === "dark" ? -1 : -4,
     },
-    accent: {
-      primary: theme === "dark" ? "#f1f5f9" : "#0f172a",
-      level: 1,
-    },
   },
-  radius: "round",
-  // Add other theme options here
-  // chatkit.studio/playground to explore config options
+  typography: {
+    baseSize: 15,
+    fontFamily: "Inter, sans-serif",
+    fontSources: [
+      {
+        family: "Inter",
+        src: "https://rsms.me/inter/font-files/Inter-Regular.woff2",
+        weight: 400,
+        style: "normal",
+      },
+      // Add the other 3 font sources from your playground config here
+      // (you'll need to copy those from the playground)
+    ],
+  },
 });
