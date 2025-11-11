@@ -68,7 +68,9 @@ export function ChatKitPanel({
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const pendingAnswerRef = useRef(false);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chatkitControlRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const chatkitRef = useRef<any>(null);
   
   // Get user first name from URL for personalized greeting
@@ -338,26 +340,40 @@ export function ChatKitPanel({
   }, []);
 
   // Helper function to extract text from message content
-  const extractTextFromContent = (content: any): string => {
+  const extractTextFromContent = useCallback((content: unknown): string => {
     if (!content) return "";
     
     if (Array.isArray(content)) {
       // Content is an array of parts
       return content
-        .filter((part: any) => part.type === "text")
-        .map((part: any) => part.text || part.content || "")
+        .filter((part: unknown) => {
+          if (typeof part === "object" && part !== null && "type" in part) {
+            return (part as { type?: string }).type === "text";
+          }
+          return false;
+        })
+        .map((part: unknown) => {
+          if (typeof part === "object" && part !== null) {
+            const partObj = part as { text?: string; content?: unknown };
+            return partObj.text || (typeof partObj.content === "string" ? partObj.content : "") || "";
+          }
+          return "";
+        })
         .join("\n")
         .trim();
     } else if (typeof content === "string") {
       return content.trim();
-    } else if (content.text) {
-      return String(content.text).trim();
-    } else if (content.content) {
-      return extractTextFromContent(content.content);
+    } else if (typeof content === "object" && content !== null) {
+      const contentObj = content as { text?: unknown; content?: unknown };
+      if (contentObj.text) {
+        return String(contentObj.text).trim();
+      } else if (contentObj.content) {
+        return extractTextFromContent(contentObj.content);
+      }
     }
     
     return "";
-  };
+  }, []);
 
   // Custom onResponseEnd that captures generated answers
   const handleResponseEndWithCapture = useCallback(() => {
@@ -384,80 +400,93 @@ export function ChatKitPanel({
             console.debug("[ChatKitPanel] Thread data:", JSON.stringify(thread, null, 2));
           }
           
-          if (thread && thread.items && thread.items.length > 0) {
-            // Find the assistant response - look for the last assistant message
-            // that comes after our "Generate a comprehensive answer" request
-            let assistantResponse = null;
+          if (thread && typeof thread === "object" && thread !== null && "items" in thread) {
+            const threadObj = thread as { items?: unknown[] };
+            if (threadObj.items && Array.isArray(threadObj.items) && threadObj.items.length > 0) {
+              // Find the assistant response - look for the last assistant message
+              // that comes after our "Generate a comprehensive answer" request
+              let assistantResponse: { content: unknown } | null = null;
+              
+              // First, try to find our request message
+              const generateRequestIndex = threadObj.items.findIndex((item: unknown) => {
+                if (typeof item === "object" && item !== null && "role" in item && "content" in item) {
+                  const itemObj = item as { role: unknown; content: unknown };
+                  return itemObj.role === "user" && 
+                    itemObj.content && 
+                    (extractTextFromContent(itemObj.content).toLowerCase().includes("generate a comprehensive answer") ||
+                     extractTextFromContent(itemObj.content).toLowerCase().includes("comprehensive answer"));
+                }
+                return false;
+              });
             
-            // First, try to find our request message
-            const generateRequestIndex = thread.items.findIndex((item: any) => 
-              item.role === "user" && 
-              item.content && 
-              (extractTextFromContent(item.content).toLowerCase().includes("generate a comprehensive answer") ||
-               extractTextFromContent(item.content).toLowerCase().includes("comprehensive answer"))
-            );
-            
-            if (isDev) {
-              console.debug("[ChatKitPanel] Generate request found at index:", generateRequestIndex);
-            }
-            
-            // Look for assistant responses after our request, or just get the last assistant message
-            for (let i = thread.items.length - 1; i >= 0; i--) {
-              const item = thread.items[i];
-              if (item.role === "assistant" && item.content) {
-                // If we found our request, only take responses after it
-                if (generateRequestIndex === -1 || i > generateRequestIndex) {
-                  assistantResponse = item;
-                  break;
+              if (isDev) {
+                console.debug("[ChatKitPanel] Generate request found at index:", generateRequestIndex);
+              }
+              
+              // Look for assistant responses after our request, or just get the last assistant message
+              for (let i = threadObj.items.length - 1; i >= 0; i--) {
+                const item = threadObj.items[i];
+                if (typeof item === "object" && item !== null && "role" in item && "content" in item) {
+                  const itemObj = item as { role: unknown; content: unknown };
+                  if (itemObj.role === "assistant" && itemObj.content) {
+                    // If we found our request, only take responses after it
+                    if (generateRequestIndex === -1 || i > generateRequestIndex) {
+                      assistantResponse = itemObj as { content: unknown };
+                      break;
+                    }
+                  }
                 }
               }
-            }
-            
-            // Fallback: if no specific response found, just get the last assistant message
-            if (!assistantResponse) {
-              for (let i = thread.items.length - 1; i >= 0; i--) {
-                const item = thread.items[i];
-                if (item.role === "assistant" && item.content) {
-                  assistantResponse = item;
-                  break;
+              
+              // Fallback: if no specific response found, just get the last assistant message
+              if (!assistantResponse) {
+                for (let i = threadObj.items.length - 1; i >= 0; i--) {
+                  const item = threadObj.items[i];
+                  if (typeof item === "object" && item !== null && "role" in item && "content" in item) {
+                    const itemObj = item as { role: unknown; content: unknown };
+                    if (itemObj.role === "assistant" && itemObj.content) {
+                      assistantResponse = itemObj as { content: unknown };
+                      break;
+                    }
+                  }
                 }
               }
-            }
             
-            if (isDev) {
-              console.debug("[ChatKitPanel] Assistant response found:", assistantResponse);
-            }
-            
-            if (assistantResponse && assistantResponse.content) {
-              const answerText = extractTextFromContent(assistantResponse.content);
+              if (isDev) {
+                console.debug("[ChatKitPanel] Assistant response found:", assistantResponse);
+              }
+              
+              if (assistantResponse && assistantResponse.content) {
+                const answerText = extractTextFromContent(assistantResponse.content);
               
               if (isDev) {
                 console.debug("[ChatKitPanel] Extracted answer text:", answerText);
               }
               
-              if (answerText) {
-                // Check if this is a proper answer (starts with "Answer:")
-                const trimmedAnswer = answerText.trim();
-                if (trimmedAnswer.toLowerCase().startsWith("answer:")) {
-                  // Extract the actual answer content (remove the "Answer:" prefix)
-                  const actualAnswer = trimmedAnswer.substring(7).trim(); // 7 = length of "Answer:"
-                  
-                  if (actualAnswer) {
-                    setGeneratedAnswer(actualAnswer);
+                if (answerText) {
+                  // Check if this is a proper answer (starts with "Answer:")
+                  const trimmedAnswer = answerText.trim();
+                  if (trimmedAnswer.toLowerCase().startsWith("answer:")) {
+                    // Extract the actual answer content (remove the "Answer:" prefix)
+                    const actualAnswer = trimmedAnswer.substring(7).trim(); // 7 = length of "Answer:"
+                    
+                    if (actualAnswer) {
+                      setGeneratedAnswer(actualAnswer);
+                      setIsGenerating(false);
+                      pendingAnswerRef.current = false;
+                      return;
+                    }
+                  } else {
+                    // There's a response but it's not a proper answer (doesn't start with "Answer:")
+                    // This means the agent responded but didn't generate an answer
+                    if (isDev) {
+                      console.debug("[ChatKitPanel] Response received but not a generated answer (missing 'Answer:' prefix):", answerText);
+                    }
+                    // Clear the generating state since no answer was generated
                     setIsGenerating(false);
                     pendingAnswerRef.current = false;
                     return;
                   }
-                } else {
-                  // There's a response but it's not a proper answer (doesn't start with "Answer:")
-                  // This means the agent responded but didn't generate an answer
-                  if (isDev) {
-                    console.debug("[ChatKitPanel] Response received but not a generated answer (missing 'Answer:' prefix):", answerText);
-                  }
-                  // Clear the generating state since no answer was generated
-                  setIsGenerating(false);
-                  pendingAnswerRef.current = false;
-                  return;
                 }
               }
             }
@@ -472,27 +501,33 @@ export function ChatKitPanel({
                 const retryThread = currentChatkit?.control?.getThread?.() || 
                                    currentChatkit?.getThread?.() || 
                                    chatkitControlRef.current?.getThread?.();
-                if (retryThread?.items?.length > 0) {
-                  // Try the same logic again
-                  for (let i = retryThread.items.length - 1; i >= 0; i--) {
-                    const item = retryThread.items[i];
-                    if (item.role === "assistant" && item.content) {
-                      const retryAnswerText = extractTextFromContent(item.content);
-                      if (retryAnswerText) {
-                        const trimmedRetryAnswer = retryAnswerText.trim();
-                        if (trimmedRetryAnswer.toLowerCase().startsWith("answer:")) {
-                          const actualRetryAnswer = trimmedRetryAnswer.substring(7).trim();
-                          if (actualRetryAnswer) {
-                            setGeneratedAnswer(actualRetryAnswer);
-                            setIsGenerating(false);
-                            pendingAnswerRef.current = false;
-                            return;
+                if (retryThread && typeof retryThread === "object" && retryThread !== null && "items" in retryThread) {
+                  const retryThreadObj = retryThread as { items?: unknown[] };
+                  if (retryThreadObj.items && Array.isArray(retryThreadObj.items) && retryThreadObj.items.length > 0) {
+                    // Try the same logic again
+                    for (let i = retryThreadObj.items.length - 1; i >= 0; i--) {
+                      const item = retryThreadObj.items[i];
+                      if (typeof item === "object" && item !== null && "role" in item && "content" in item) {
+                        const itemObj = item as { role: unknown; content: unknown };
+                        if (itemObj.role === "assistant" && itemObj.content) {
+                          const retryAnswerText = extractTextFromContent(itemObj.content);
+                          if (retryAnswerText) {
+                            const trimmedRetryAnswer = retryAnswerText.trim();
+                            if (trimmedRetryAnswer.toLowerCase().startsWith("answer:")) {
+                              const actualRetryAnswer = trimmedRetryAnswer.substring(7).trim();
+                              if (actualRetryAnswer) {
+                                setGeneratedAnswer(actualRetryAnswer);
+                                setIsGenerating(false);
+                                pendingAnswerRef.current = false;
+                                return;
+                              }
+                            } else {
+                              // Response doesn't have Answer: prefix, clear state
+                              setIsGenerating(false);
+                              pendingAnswerRef.current = false;
+                              return;
+                            }
                           }
-                        } else {
-                          // Response doesn't have Answer: prefix, clear state
-                          setIsGenerating(false);
-                          pendingAnswerRef.current = false;
-                          return;
                         }
                       }
                     }
@@ -512,26 +547,32 @@ export function ChatKitPanel({
                 const retryThread = currentChatkit?.control?.getThread?.() || 
                                    currentChatkit?.getThread?.() || 
                                    chatkitControlRef.current?.getThread?.();
-                if (retryThread?.items?.length > 0) {
-                  for (let i = retryThread.items.length - 1; i >= 0; i--) {
-                    const item = retryThread.items[i];
-                    if (item.role === "assistant" && item.content) {
-                      const retryAnswerText = extractTextFromContent(item.content);
-                      if (retryAnswerText) {
-                        const trimmedRetryAnswer = retryAnswerText.trim();
-                        if (trimmedRetryAnswer.toLowerCase().startsWith("answer:")) {
-                          const actualRetryAnswer = trimmedRetryAnswer.substring(7).trim();
-                          if (actualRetryAnswer) {
-                            setGeneratedAnswer(actualRetryAnswer);
-                            setIsGenerating(false);
-                            pendingAnswerRef.current = false;
-                            return;
+                if (retryThread && typeof retryThread === "object" && retryThread !== null && "items" in retryThread) {
+                  const retryThreadObj = retryThread as { items?: unknown[] };
+                  if (retryThreadObj.items && Array.isArray(retryThreadObj.items) && retryThreadObj.items.length > 0) {
+                    for (let i = retryThreadObj.items.length - 1; i >= 0; i--) {
+                      const item = retryThreadObj.items[i];
+                      if (typeof item === "object" && item !== null && "role" in item && "content" in item) {
+                        const itemObj = item as { role: unknown; content: unknown };
+                        if (itemObj.role === "assistant" && itemObj.content) {
+                          const retryAnswerText = extractTextFromContent(itemObj.content);
+                          if (retryAnswerText) {
+                            const trimmedRetryAnswer = retryAnswerText.trim();
+                            if (trimmedRetryAnswer.toLowerCase().startsWith("answer:")) {
+                              const actualRetryAnswer = trimmedRetryAnswer.substring(7).trim();
+                              if (actualRetryAnswer) {
+                                setGeneratedAnswer(actualRetryAnswer);
+                                setIsGenerating(false);
+                                pendingAnswerRef.current = false;
+                                return;
+                              }
+                            } else {
+                              // Response doesn't have Answer: prefix, clear state
+                              setIsGenerating(false);
+                              pendingAnswerRef.current = false;
+                              return;
+                            }
                           }
-                        } else {
-                          // Response doesn't have Answer: prefix, clear state
-                          setIsGenerating(false);
-                          pendingAnswerRef.current = false;
-                          return;
                         }
                       }
                     }
@@ -550,7 +591,7 @@ export function ChatKitPanel({
         }
       }, 800); // Increased delay to ensure message is fully processed
     }
-  }, [onResponseEnd]);
+  }, [onResponseEnd, extractTextFromContent]);
 
   const chatkit = useChatKit({
     api: { getClientSecret },
